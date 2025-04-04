@@ -13,20 +13,16 @@ abstract class BaseRepository
     implements RepositoryInterface, TableMetadataInterface, FilterableInterface, HasRelationsInterface
 {
     public function __construct(
-        protected PDO $connection,
-        protected QueryBuilder $queryBuilder,
+        protected PDO             $connection,
+        protected QueryBuilder    $queryBuilder,
         protected RelationManager $relationManager
     ) {}
 
-    public static function createModel(): ModelInterface
+    public function createModel($attributes): ModelInterface
     {
-        $class = static::getModelClass();
-        return new $class();
-    }
-
-    public static function getModelProperties(): array
-    {
-        return static::createModel()->getProperties();
+        $class = $this->getModelClass();
+        $model = new $class();
+        return $model->setAttributes($attributes);
     }
 
     /**
@@ -75,7 +71,7 @@ abstract class BaseRepository
             throw new CreateFailedException("Failed to create record in {$this->getTableName()}");
         }
 
-        return $this->createModel()->setAttributes([
+        return $this->createModel([
             'id' => (int)$this->connection->lastInsertId(),
             ...$attributes
         ]);
@@ -95,7 +91,7 @@ abstract class BaseRepository
             throw new UpdateFailedException("Failed to update record in {$this->getTableName()}");
         }
 
-        return $this->createModel()->setAttributes($attributes);
+        return $this->createModel($attributes);
     }
 
     // TODO: add cache

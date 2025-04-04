@@ -4,9 +4,9 @@ namespace App\Repository;
 
 interface HasRelationsInterface
 {
-    public static function getRelations(): array;
+    public function getRelations(): array;
 
-    public static function getTableName(): string;
+    public function getTableName(): string;
 
-    public static function getModelClass(): string;
+    public function getModelClass(): string;
 }

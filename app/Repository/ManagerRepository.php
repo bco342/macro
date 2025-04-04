@@ -8,33 +8,34 @@ use App\Service\Database\Query\ModelRelation;
 class ManagerRepository extends BaseRepository implements ManagerRepositoryInterface
 {
     // массив разрешенных фильтров [queryParam => sql-колонка]
-    private static $mapRules = [
+    private $mapRules = [
         'agency' => 'agency_id'
     ];
 
-    public static function getTableName(): string
+    public function getTableName(): string
     {
         return 'manager';
     }
 
-    public static function getModelClass(): string
+    public function getModelClass(): string
     {
         return Manager::class;
     }
 
-    public static function getRelations(): array
+    public function getRelations(): array
     {
         return [
-            AgencyRepository::class => new ModelRelation(
+            new ModelRelation(
+                targetTable: 'agency',
                 joinType: ModelRelation::LEFT,
                 conditions: ['agency_id' => 'id'],
-                excludes: ['id']
-            )
+                targetColumnsToSelect: ['name']
+            ),
         ];
     }
 
-    public static function mapFilterToProperty($queryParam): ?string
+    public  function mapFilterToProperty($queryParam): ?string
     {
-        return static::$mapRules[$queryParam] ?? null;
+        return $this->mapRules[$queryParam] ?? null;
     }
 }

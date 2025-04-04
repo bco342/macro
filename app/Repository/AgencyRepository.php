@@ -6,22 +6,22 @@ use App\Model\Agency;
 
 class AgencyRepository extends BaseRepository implements AgencyRepositoryInterface
 {
-    public static function getTableName(): string
+    public function getTableName(): string
     {
         return 'agency';
     }
 
-    public static function getModelClass(): string
+    public function getModelClass(): string
     {
         return Agency::class;
     }
 
-    public static function mapFilterToProperty(string $queryParam): ?string
+    public function mapFilterToProperty(string $queryParam): ?string
     {
         return null;
     }
 
-    public static function getRelations(): array
+    public function getRelations(): array
     {
         return [];
     }

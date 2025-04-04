@@ -9,9 +9,10 @@ class ModelRelation
     public const string INNER = 'INNER';
 
     public function __construct(
+        public readonly string $targetTable,
+        public readonly array $targetColumnsToSelect,
         public readonly string $joinType,
-        public readonly array $conditions,
-        public readonly array $excludes
+        public readonly array $conditions
     ) {}
 
     public static function getTypes()

@@ -3,7 +3,6 @@
 namespace App\Service\Database;
 
 use App\Repository\HasRelationsInterface;
-use App\Repository\TableMetadataInterface;
 use App\Service\Database\Query\JoinClause;
 use App\Service\Database\Query\ModelRelation;
 
@@ -22,19 +21,16 @@ class RelationManager
         $mainModelClass = $repository->getModelClass();
         $select = [];
         $joins = [];
-
         /**
-         * @var HasRelationsInterface $targetClass
-         * @var ModelRelation $modelRelation
+         * @var ModelRelation $relation
          */
-        foreach ($repository->getRelations() as $targetClass => $modelRelation) {
-            $this->validateJoin($targetClass, $modelRelation->joinType, $mainModelClass);
+        foreach ($repository->getRelations() as $relation) {
+            $this->validateJoin($relation, $mainModelClass);
 
-            $targetTable = $targetClass::getTableName();
-            $onClauses = $this->buildOnClauses($mainTable, $targetTable, $modelRelation->conditions);
+            $onClauses = $this->buildOnClauses($mainTable, $relation->targetTable, $relation->conditions);
 
-            $joins[] = "$modelRelation->joinType JOIN `$targetTable` ON " . implode(' AND ', $onClauses);
-            $select = array_merge($select, $this->buildSelect($targetClass, $modelRelation->excludes));
+            $joins[] = "$relation->joinType JOIN `$relation->targetTable` ON " . implode(' AND ', $onClauses);
+            $select = array_merge($select, $this->buildSelect($relation));
         }
 
         return new JoinClause(
@@ -50,14 +46,10 @@ class RelationManager
      * @return void
      * @throws \InvalidArgumentException
      */
-    private function validateJoin(string $targetClass, string $joinType, string $mainModelClass): void
+    private function validateJoin(ModelRelation $relation, string $mainModelClass): void
     {
-        if (!is_a($targetClass, TableMetadataInterface::class, true)) {
-            throw new \InvalidArgumentException("$targetClass must implement TableMetadataInterface");
-        }
-
-        if (!in_array($joinType, ['LEFT', 'INNER', 'RIGHT'])) {
-            throw new \InvalidArgumentException("Invalid join type '$joinType' for $mainModelClass");
+        if (!in_array($relation->joinType, $relation->getTypes())) {
+            throw new \InvalidArgumentException("Invalid join type '$relation->joinType' for $mainModelClass");
         }
     }
 
@@ -72,13 +64,11 @@ class RelationManager
         return $onClauses;
     }
 
-    private function buildSelect(string $targetClass, array $excludes): array
+    private function buildSelect(ModelRelation $relation): array
     {
         $select = [];
-        foreach ($targetClass::getModelProperties() as $field) {
-            if (!in_array($field, $excludes)) {
-                $select[] = "`{$targetClass::getTableName()}`.`$field` AS {$targetClass::getTableName()}_$field";
-            }
+        foreach ($relation->targetColumnsToSelect as $field) {
+            $select[] = "`$relation->targetTable`.`$field` AS {$relation->targetTable}_$field";
         }
         return $select;
     }

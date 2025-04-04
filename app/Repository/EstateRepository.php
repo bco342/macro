@@ -8,44 +8,47 @@ use App\Service\Database\Query\ModelRelation;
 class EstateRepository extends BaseRepository implements EstateRepositoryInterface
 {
     // массив разрешенных фильтров [queryParam => sql-колонка]
-    private static $mapRules = [
+    private $mapRules = [
         'agency' => 'agency_id',
         'manager' => 'manager_id',
         'contact' => 'contact_id',
     ];
 
-    public static function mapFilterToProperty(string $queryParam): ?string
+    public function mapFilterToProperty(string $queryParam): ?string
     {
-        return static::$mapRules[$queryParam] ?? null;
+        return $this->mapRules[$queryParam] ?? null;
     }
 
-    public static function getRelations(): array
+    public function getRelations(): array
     {
         return [
-            AgencyRepository::class => new ModelRelation(
+            new ModelRelation(
+                targetTable: 'agency',
                 joinType: ModelRelation::LEFT,
                 conditions: ['agency_id' => 'id'],
-                excludes: ['id']
+                targetColumnsToSelect: ['name']
             ),
-            ManagerRepository::class => new ModelRelation(
+            new ModelRelation(
+                targetTable: 'manager',
                 joinType: ModelRelation::LEFT,
                 conditions: ['manager_id' => 'id'],
-                excludes: ['id', 'agency_id']
+                targetColumnsToSelect: ['name']
             ),
-            ContactRepository::class => new ModelRelation(
+            new ModelRelation(
+                targetTable: 'contacts',
                 joinType: ModelRelation::LEFT,
                 conditions: ['contact_id' => 'id'],
-                excludes: ['id', 'agency_id']
-            )
+                targetColumnsToSelect: ['name', 'phones']
+            ),
         ];
     }
 
-    public static function getTableName(): string
+    public function getTableName(): string
     {
         return 'estate';
     }
 
-    public static function getModelClass(): string
+    public function getModelClass(): string
     {
         return Estate::class;
     }
