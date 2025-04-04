@@ -1,0 +1,20 @@
+#!/usr/bin/env php
+<?php
+require __DIR__ . '/../../vendor/autoload.php';
+
+use App\Console\Application;
+use DI\ContainerBuilder;
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+$dotenv->required(['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'EXCEL_PATH']);
+
+$containerBuilder = new ContainerBuilder();
+
+$containerBuilder->addDefinitions(__DIR__ . '/../Config/db.php');
+$containerBuilder->addDefinitions(__DIR__ . '/../Config/console.php');
+$containerBuilder->addDefinitions(__DIR__ . '/../Config/import.php');
+$container = $containerBuilder->build();
+
+$application = $container->get(Application::class);
+$application->run();

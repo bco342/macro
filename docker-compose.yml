@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  # PHP service
+  app:
+    build: .
+    container_name: macro-app
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - app-network
+    depends_on:
+      - db
+
+  # MySQL database service
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    env_file:
+      - ./.env
+    networks:
+      - app-network
+
+  # Nginx service
+  nginx:
+    image: nginx:alpine
+    container_name: php-nginx
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+networks:
+  app-network:
+    driver: bridge
